@@ -38,4 +38,4 @@ Default paths:
 
 ## License
 
-GNU AFFERO GENERAL PUBLIC LICENSE
+This code is licensed under the [<b>Affero General Public License</b>](https://raw.githubusercontent.com/tkenda/pstone/main/LICENSE) the same as [<b>Orthanc Web Viewer</b>](https://www.orthanc-server.com/static.php?page=stone-web-viewer)'s license.
