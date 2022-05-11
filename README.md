@@ -64,7 +64,7 @@ system:
     pluginEnabled: true
     storageAreaPlugin: ~
     version: "1.10.1"
-# TLS for server
+# TLS for listening server.
 tls:
     enabled: false
     certs: ""
