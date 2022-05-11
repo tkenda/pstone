@@ -1,6 +1,6 @@
 # PStone
 
-It is a simple static web server that exposes Orthanc's Stone Web Viewer files from front folder, simulates some Orthanc's responses to hack the viewer and redirects the DICOM WADO requests to another endpoint. It can be used with all PACS that supports DICOM WADO standard.
+It is a simple static web server that exposes Orthanc's Stone Web Viewer files from front folder, simulates some Orthanc's responses to hack the viewer and redirects the DICOM WADO requests to another endpoint. It can be used with any PACSs that supports DICOM WADO standard.
 
 ## Build
 
@@ -30,11 +30,46 @@ It is a simple static web server that exposes Orthanc's Stone Web Viewer files f
 
 ## Usage
 
-The service starts on boot. You can setup application configuration using the config.yaml located in the same folder where the app runs.
+The service starts on boot. You can setup application using the config.yaml located in the same folder where the app runs.
 
-Default paths:
+Default Path:
 - Windows = ``C:\Program Files\PStone``
 - Ubuntu = ``/usr/local/pstone``
+
+Setup ``config.yaml``:
+
+```yaml
+# IP address of the server.
+bindIp: "0.0.0.0"
+# Port of the server.
+port: 3000
+# PACS type. (Only available Proteus PACS)
+pacs: proteus
+# PACS WADO endpoint.
+pacsUrl: "http://127.0.0.1:8080/api/v1/"
+# DICOM study download option. (Only available for Proteus PACS)
+archive:
+    proteus:
+        token: "XXXXXXX"
+# Data sent to Stone Web Viewer to identify PACS.
+system:
+    apiVersion: 16
+    checkRevisions: false
+    databaseBackendPlugin: ~
+    dicomAet: "ORTHANC"
+    dicomPort: 4242
+    httpPort: 8042
+    isHttpServerSecure: true
+    name: "Orthanc Gateway"
+    pluginEnabled: true
+    storageAreaPlugin: ~
+    version: "1.10.1"
+# TLS for server
+tls:
+    enabled: false
+    certs: ""
+    key: ""
+```
 
 ## License
 

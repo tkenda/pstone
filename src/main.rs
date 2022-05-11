@@ -24,6 +24,7 @@ use config::Config;
 async fn main() {
     let client = Client::new();
 
+    // Load config.yaml, if not found use default values.
     let config = match File::open("config.yaml") {
         Ok(file) => serde_yaml::from_reader(file).unwrap(),
         Err(err) => {
