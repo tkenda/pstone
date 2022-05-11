@@ -12,7 +12,7 @@ It is a simple static web server that exposes Orthanc's Stone Web Viewer files f
     ```
     $ sh build.sh
     ```
-4. Use the .deb package from /target/release/pstone_0.1.0.deb. 
+4. Use the .deb package from ``/target/release/pstone_0.1.0.deb``. 
     ```
     # dpkg -i pstone_0.1.0.deb
     ```
@@ -21,12 +21,12 @@ It is a simple static web server that exposes Orthanc's Stone Web Viewer files f
 1. Install Rust: https://www.rust-lang.org/tools/install
 2. Install NodeJS: https://nodejs.org
 3. Install JRSoftware Inno Setup: https://jrsoftware.org/isinfo.php
-4. Set the correct Inno Setup path value (INNO_DIR) in /build/.env file.
+4. Set the correct Inno Setup path value ``INNO_DIR`` in ``/build/.env`` file.
 5. Execute build script: 
     ```
     C:\>build.bat
     ```
-6. Use the installer program from /target/release/pstone_0.1.0.exe.
+6. Use the installer program from ``/target/release/pstone_0.1.0.exe``.
 
 ## Usage
 
