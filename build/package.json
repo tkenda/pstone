@@ -1,0 +1,16 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "buildApp.js",
+  "scripts": {
+    "start": "node buildApp.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cli-spinner": "^0.2.10",
+    "dotenv": "^8.2.0",
+    "toml": "^3.0.0"
+  }
+}

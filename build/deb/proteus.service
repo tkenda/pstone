@@ -1,0 +1,11 @@
+[Unit]
+After=network.target
+
+[Service]
+WorkingDirectory=/usr/local/pstone
+ExecStart=/usr/local/pstone/pstoned
+Restart=always
+TimeoutSec=600
+
+[Install]
+WantedBy=multi-user.target
