@@ -3,6 +3,12 @@ name = "pstoned"
 version = "0.1.0"
 authors = ["Idria Software <info@idria.com.ar>"]
 edition = "2021"
+license = "GNU Affero General Public License"
+homepage = "https://github.com/tkenda/pstone"
+repository = "https://github.com/tkenda/pstone.git"
+keywords = ["dicom", "stone", "orthanc"]
+description = "Orthanc's Stone DICOM Web Viewer integration."
+readme = "README.md"
 build = "build.rs"
 
 [package.metadata.winres]
