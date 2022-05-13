@@ -39,6 +39,8 @@ pub(crate) struct Config {
     pub pacs: Pacs,
     #[serde(default = "default_pacs_url")]
     pub pacs_url: String,
+    #[serde(default = "default_pacs_invalid_certs")]
+    pub pacs_invalid_certs: bool,
     #[serde(default)]
     pub archive: Archive,
     #[serde(default)]
@@ -54,6 +56,7 @@ impl Default for Config {
             port: 3000,
             pacs: Pacs::Proteus,
             pacs_url: "http://127.0.0.1:8080/api/v1/".to_string(),
+            pacs_invalid_certs: false,
             archive: Archive::default(),
             system: System::default(),
             tls: Tls::default(),
@@ -77,3 +80,6 @@ fn default_pacs_url() -> String {
     Config::default().pacs_url
 }
 
+fn default_pacs_invalid_certs() -> bool {
+    Config::default().pacs_invalid_certs
+}

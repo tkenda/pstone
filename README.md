@@ -47,6 +47,8 @@ port: 3000
 pacs: proteus
 # PACS WADO endpoint.
 pacsUrl: "http://127.0.0.1:8080/api/v1/"
+# PACS Accept Invalid Certs for https local connection.
+pacsInvalidCerts: false
 # DICOM study download option. (Only available for Proteus PACS)
 archive:
     proteus:

@@ -1,18 +1,17 @@
 use axum::{
+    body::Body,
     extract::{Extension, Path},
-    http::StatusCode,
-    http::{uri::Uri, Request, Response},
+    http::{HeaderMap, Method, Request},
+    http::{HeaderValue, StatusCode},
     response::{self, IntoResponse, Redirect},
     routing::{any, get, get_service, post},
     Json, Router,
 };
 use axum_server::tls_rustls::RustlsConfig;
-use hyper::{client::HttpConnector, Body};
+use reqwest::{header, Client};
 use std::fs::File;
-use std::{convert::TryFrom, net::SocketAddr};
+use std::net::SocketAddr;
 use tower_http::services::ServeDir;
-
-pub type Client = hyper::client::Client<HttpConnector, Body>;
 
 mod config;
 mod integration;
@@ -22,8 +21,6 @@ use config::Config;
 
 #[tokio::main]
 async fn main() {
-    let client = Client::new();
-
     // Load config.yaml, if not found use default values.
     let config = match File::open("config.yaml") {
         Ok(file) => serde_yaml::from_reader(file).unwrap(),
@@ -32,6 +29,12 @@ async fn main() {
             Config::default()
         }
     };
+
+    let client = Client::builder()
+        .danger_accept_invalid_certs(true)
+        .referer(false)
+        .build()
+        .unwrap();
 
     let addr = SocketAddr::new(config.bind_ip, config.port);
 
@@ -72,6 +75,58 @@ async fn main() {
     }
 }
 
+async fn send(
+    url: String,
+    request: Request<Body>,
+    client: Client,
+) -> (StatusCode, HeaderMap, Vec<u8>) {
+    let action = match request.method() {
+        &Method::GET => client.get(url),
+        &Method::HEAD => client.head(url),
+        _ => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                HeaderMap::default(),
+                format!("Invalid request method.").as_bytes().to_vec(),
+            )
+        }
+    };
+
+    let headers = request.headers().to_owned();
+
+    match action
+        .header("X-WADO-Client", "orthanc")
+        .header(
+            header::REFERER,
+            headers
+                .get(header::REFERER)
+                .unwrap_or(&HeaderValue::from_static("")),
+        )
+        .header(
+            header::ACCEPT,
+            headers
+                .get(header::ACCEPT)
+                .unwrap_or(&HeaderValue::from_static("")),
+        )
+        .body(request.into_body())
+        .send()
+        .await
+    {
+        Ok(t) => (
+            StatusCode::OK,
+            t.headers().to_owned(),
+            t.bytes().await.unwrap().to_vec(),
+        ),
+        Err(err) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                HeaderMap::default(),
+                format!("{}", err).as_bytes().to_vec(),
+            )
+        }
+    }
+}
+
 // Simulates Orthancs PACS response.
 async fn system_handler(Extension(config): Extension<Config>) -> Json<system::System> {
     Json(config.system)
@@ -81,11 +136,10 @@ async fn system_handler(Extension(config): Extension<Config>) -> Json<system::Sy
 async fn lookup_handler(
     Extension(config): Extension<Config>,
     Extension(client): Extension<Client>,
-    mut request: Request<Body>,
-) -> Response<Body> {
-    let uri = format!("{}orthanc/tools/lookup", config.pacs_url);
-    *request.uri_mut() = Uri::try_from(uri).unwrap();
-    client.request(request).await.unwrap()
+    request: Request<Body>,
+) -> impl IntoResponse {
+    let url = format!("{}orthanc/tools/lookup", config.pacs_url);
+    send(url, request, client).await
 }
 
 enum ArchiveRes {
@@ -128,19 +182,16 @@ async fn archive_handler(
 async fn wado_handler(
     Extension(config): Extension<Config>,
     Extension(client): Extension<Client>,
-    mut request: Request<Body>,
-) -> Response<Body> {
-    let path = request.uri().path();
-    let path_query = request
+    request: Request<Body>,
+) -> impl IntoResponse {
+    let path_and_query = request
         .uri()
         .path_and_query()
         .map(|v| v.as_str())
-        .unwrap_or(path);
+        .unwrap_or(request.uri().path());
 
-    let uri = format!("{}dicom-web{}", config.pacs_url, path_query);
-    (*request.headers_mut()).append("X-WADO-Client", "orthanc".parse().unwrap());
-    *request.uri_mut() = Uri::try_from(uri).unwrap();
-    client.request(request).await.unwrap()
+    let url = format!("{}dicom-web{}", config.pacs_url, path_and_query);
+    send(url, request, client).await
 }
 
 async fn handle_error(error: std::io::Error) -> impl IntoResponse {
