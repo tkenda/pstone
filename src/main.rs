@@ -31,7 +31,7 @@ async fn main() {
     };
 
     let client = Client::builder()
-        .danger_accept_invalid_certs(true)
+        .danger_accept_invalid_certs(config.pacs_invalid_certs)
         .referer(false)
         .build()
         .unwrap();
@@ -83,6 +83,7 @@ async fn send(
     let action = match request.method() {
         &Method::GET => client.get(url),
         &Method::HEAD => client.head(url),
+        &Method::POST => client.post(url),
         _ => {
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,

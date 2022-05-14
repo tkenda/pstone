@@ -31,7 +31,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8.23"
 serde_json = "1.0.79"
 async-trait = "0.1.53"
-reqwest = { version = "0.11.10", features = ["native-tls"] }
+reqwest = { version = "0.11.10", features = ["native-tls", "json"] }
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1.12"
