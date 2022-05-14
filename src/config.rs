@@ -47,6 +47,8 @@ pub(crate) struct Config {
     pub system: System,
     #[serde(default)]
     pub tls: Tls,
+    #[serde(default = "default_server_name")]
+    pub server_name: Option<String>,
 }
 
 impl Default for Config {
@@ -60,6 +62,7 @@ impl Default for Config {
             archive: Archive::default(),
             system: System::default(),
             tls: Tls::default(),
+            server_name: None,
         }
     }
 }
@@ -82,4 +85,8 @@ fn default_pacs_url() -> String {
 
 fn default_pacs_invalid_certs() -> bool {
     Config::default().pacs_invalid_certs
+}
+
+fn default_server_name() -> Option<String> {
+    Config::default().server_name
 }

@@ -3,6 +3,7 @@ use axum::{
     extract::{Extension, Path},
     http::{HeaderMap, Method, Request},
     http::{HeaderValue, StatusCode},
+    middleware::{self, Next},
     response::{self, IntoResponse, Redirect},
     routing::{any, get, get_service, post},
     Json, Router,
@@ -48,6 +49,8 @@ async fn main() {
         None
     };
 
+    let server_name = config.server_name.to_owned();
+
     let app = Router::new()
         .route("/system", get(system_handler))
         .route("/tools/lookup", post(lookup_handler))
@@ -55,7 +58,10 @@ async fn main() {
         .nest("/dicom-web/", any(wado_handler))
         .fallback(get_service(ServeDir::new("./front")).handle_error(handle_error))
         .layer(Extension(client))
-        .layer(Extension(config));
+        .layer(Extension(config))
+        .layer(middleware::from_fn(move |req, next| {
+            filter_redirects(server_name.clone(), req, next)
+        }));
 
     println!("reverse proxy listening on {}", addr);
 
@@ -200,4 +206,34 @@ async fn handle_error(error: std::io::Error) -> impl IntoResponse {
         StatusCode::INTERNAL_SERVER_ERROR,
         format!("Unhandled internal error: {}", error),
     )
+}
+
+async fn filter_redirects<B>(
+    server_name: Option<String>,
+    req: Request<B>,
+    next: Next<B>,
+) -> impl IntoResponse {
+    match server_name {
+        Some(ref sn) => {
+            let host_parts = req
+                .headers()
+                .get(header::HOST)
+                .map(|t| t.to_str().unwrap().split(":").collect::<Vec<&str>>())
+                .unwrap_or(vec![]);
+
+            let domain = if host_parts.is_empty() {
+                None
+            } else {
+                Some(host_parts[0])
+            };
+
+            match domain {
+                Some(t) if t == sn => Ok(next.run(req).await),
+                Some(t) if t == "127.0.0.1" => Ok(next.run(req).await),
+                Some(t) if t == "localhost" => Ok(next.run(req).await),
+                Some(_) | None => Err(StatusCode::MISDIRECTED_REQUEST),
+            }
+        }
+        None => Ok(next.run(req).await),
+    }
 }
