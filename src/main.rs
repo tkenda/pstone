@@ -208,6 +208,30 @@ async fn handle_error(error: std::io::Error) -> impl IntoResponse {
     )
 }
 
+fn host_from_header<B>(req: &Request<B>) -> Option<&str> {
+    let host_parts = req
+        .headers()
+        .get(header::HOST)
+        .map(|t| t.to_str().unwrap().split(":").collect::<Vec<&str>>())
+        .unwrap_or(vec![]);
+
+    if host_parts.is_empty() {
+        return None;
+    }
+
+    let uri_parts = host_parts[0].split("/").collect::<Vec<&str>>();
+
+    if uri_parts.is_empty() {
+        None
+    } else {
+        Some(uri_parts[0])
+    }
+}
+
+fn host_from_uri<B>(req: &Request<B>) -> Option<&str> {
+    req.uri().host()
+}
+
 async fn filter_redirects<B>(
     server_name: Option<String>,
     req: Request<B>,
@@ -215,19 +239,12 @@ async fn filter_redirects<B>(
 ) -> impl IntoResponse {
     match server_name {
         Some(ref sn) => {
-            let host_parts = req
-                .headers()
-                .get(header::HOST)
-                .map(|t| t.to_str().unwrap().split(":").collect::<Vec<&str>>())
-                .unwrap_or(vec![]);
-
-            let domain = if host_parts.is_empty() {
-                None
-            } else {
-                Some(host_parts[0])
+            let host = match host_from_uri(&req) {
+                Some(t) => Some(t),
+                None => host_from_header(&req),
             };
 
-            match domain {
+            match host {
                 Some(t) if t == sn => Ok(next.run(req).await),
                 Some(t) if t == "127.0.0.1" => Ok(next.run(req).await),
                 Some(t) if t == "localhost" => Ok(next.run(req).await),
