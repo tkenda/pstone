@@ -71,7 +71,7 @@
      * set, all the requests for dynamic actions will be rejected.
      * https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
      **/
-    "ExpectedMessageOrigin" : "http://localhost:8080",
+    "ExpectedMessageOrigin" : "http://localhost:8042",
 
     /**
      * Root path of the DICOMweb server. This option is automatically

@@ -120,7 +120,7 @@ async fn send(
         .await
     {
         Ok(t) => (
-            StatusCode::OK,
+            t.status(),
             t.headers().to_owned(),
             t.bytes().await.unwrap().to_vec(),
         ),
